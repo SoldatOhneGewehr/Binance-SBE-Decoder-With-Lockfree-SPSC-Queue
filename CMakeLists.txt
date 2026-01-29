@@ -10,11 +10,13 @@ find_package(OpenSSL REQUIRED)
 
 # Include directories
 include_directories(${PROJECT_SOURCE_DIR}/include)
+include_directories(${PROJECT_SOURCE_DIR}/generated/spot_stream)
 
 # Add executable
 add_executable(myqueue
     src/main.cpp
     src/BinanceSBEWebSocket.cpp
+    src/Decoder.cpp
 )
 
 # Link libraries

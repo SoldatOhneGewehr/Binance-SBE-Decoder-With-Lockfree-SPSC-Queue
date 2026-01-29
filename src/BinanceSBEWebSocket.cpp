@@ -22,7 +22,7 @@ void WebSocket::connect(const std::string& host, const std::string& port, const 
         auto const results = resolver_.resolve(host, port);
         
         // Connect to the IP address
-        [[maybeunused]]auto ep = net::connect(get_lowest_layer(ws_), results);
+        [[maybe_unused]]auto ep = net::connect(get_lowest_layer(ws_), results);
         
         // Set SNI Hostname
         if (!SSL_set_tlsext_host_name(ws_.next_layer().native_handle(), host.c_str())) {

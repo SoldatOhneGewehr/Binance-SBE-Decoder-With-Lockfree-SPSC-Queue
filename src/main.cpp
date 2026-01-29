@@ -4,6 +4,7 @@
 
 #include "MyQueue.hpp"
 #include "BinanceSBEWebSocket.hpp"
+#include "Decoder.hpp"
 
 constexpr auto cpu1 = 3;
 constexpr auto cpu2 = 4;
@@ -22,13 +23,16 @@ static void pinThread(int cpu) {
 }
 
 int main() {
-    constexpr auto queue_capacity = 1000000;
-    constexpr auto iterations = 100'000'000;
+    constexpr auto queue_capacity = 1'000'000;
+    constexpr auto iterations = 1'000;
+
+    DataDecoder decoder;
     
     std::string api_key = "gRPiT4IzLmzQ3VK7TJbXV7jE8TB8rSsqAxJqvAR0wSPDkjPnhC10fQvhJFHjSo31";
     std::string host = "stream-sbe.binance.com";
     std::string port = "9443";
-    std::string path = "/ws/btcusdt@bestBidAsk";
+    // std::string path = "/ws/btcusdt@bestBidAsk";
+    std::string path = "/stream?streams=btcusdt@bestBidAsk/ethusdt@bestBidAsk/bnbusdt@bestBidAsk/adausdt@bestBidAsk/xrpusdt@bestBidAsk";
 
     WebSocket ws(api_key);
     ws.connect(host, port, path);
@@ -48,18 +52,26 @@ int main() {
         }
     });
 
-    std::thread consumer([&queue, &ws]() {
+    std::thread consumer([&queue, &ws, &decoder]() {
         pinThread(cpu2);
         uint64_t count = 0;
         RawBlock value;
         while (count < iterations) {
             if (queue.pop(value)) {
                 ++count;
-                ws.print_binary_dump(reinterpret_cast<const unsigned char*>(&value.data[0]), value.data.size());
+                auto decoded_header = decoder.DecodeMessageHeader(value.data);
+                if(decoded_header.templateId == 10001) {
+                    auto decoded_event = decoder.DecodeBestBidAskStreamEvent(value.data);
+                    std::cout << "Event Time: " << decoded_event.eventTime
+                            << ", Book Update ID: " << decoded_event.bookUpdateId
+                            << ", Bid Price: " << decoded_event.bidPrice
+                            << ", Ask Price: " << decoded_event.askPrice
+                            << ", Symbol: " << decoded_event.symbol << std::endl;
+                }
             }
         }
     });
-    
+
     producer.join();
     consumer.join();
     
