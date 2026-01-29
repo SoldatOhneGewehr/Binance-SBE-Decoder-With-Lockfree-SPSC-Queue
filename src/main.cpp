@@ -28,7 +28,7 @@ int main() {
 
     DataDecoder decoder;
     
-    std::string api_key = "gRPiT4IzLmzQ3VK7TJbXV7jE8TB8rSsqAxJqvAR0wSPDkjPnhC10fQvhJFHjSo31";
+    std::string api_key = "your-api-key-here";
     std::string host = "stream-sbe.binance.com";
     std::string port = "9443";
     // std::string path = "/ws/btcusdt@bestBidAsk";
